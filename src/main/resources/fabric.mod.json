@@ -23,9 +23,8 @@
   ],
   "depends": {
     "java": ">=${minJavaVersion}",
-    "minecraft": "=${minecraftVersion}",
-    "fabricloader": ">=${minLoaderVersion}",
-    "fabric-api": "*"
+    "minecraft": ">=${minMinecraftVersion}",
+    "fabricloader": ">=${minLoaderVersion}"
   },
   "accessWidener": "xyzbook.accesswidener"
 }
