@@ -199,7 +199,7 @@ public abstract class BookEditScreenMixin extends Screen {
                 20,
                 new TranslatableText("xyzbook.new_entry"),
                 button -> {
-                    RegistryKey<World> dimension = player.getWorld().getRegistryKey();
+                    RegistryKey<World> dimension = player.world.getRegistryKey();
                     String dimensionColor;
                     if (dimension == World.OVERWORLD) {
                         dimensionColor = "§2";
