@@ -185,9 +185,9 @@ public abstract class BookEditScreenMixin extends Screen {
                         dimensionColor = "§5";
                     }
                     coordinates = dimensionColor +
-                        (int) player.getX() + " " +
-                        (int) player.getY() + " " +
-                        (int) player.getZ() + "§r";
+                        (int) player.x + " " +
+                        (int) player.y + " " +
+                        (int) player.z + "§r";
                     signing = true;
                     updateButtons();
                 }

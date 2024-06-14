@@ -1,7 +1,6 @@
 package com.diskree.xyzbook.mixins;
 
 import com.diskree.xyzbook.BuildConfig;
-import net.minecraft.item.ElytraItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.WritableBookItem;
 import net.minecraft.util.Identifier;
