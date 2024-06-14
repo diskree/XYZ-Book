@@ -11,12 +11,12 @@ import net.minecraft.client.util.SelectionManager;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.registry.RegistryKey;
 import net.minecraft.screen.ScreenTexts;
 import net.minecraft.text.StringVisitable;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
@@ -190,29 +190,46 @@ public abstract class BookEditScreenMixin extends Screen {
     )
     public void initXYZButtons(CallbackInfo ci) {
         if (isXYZBook) {
-            newEntryButton = addDrawableChild(ButtonWidget.builder(Text.translatable("xyzbook.new_entry"), button -> {
-                RegistryKey<World> dimension = player.getWorld().getRegistryKey();
-                String dimensionColor;
-                if (dimension == World.OVERWORLD) {
-                    dimensionColor = "§2";
-                } else if (dimension == World.NETHER) {
-                    dimensionColor = "§4";
-                } else {
-                    dimensionColor = "§5";
-                }
-                coordinates = dimensionColor + (int) player.getX() + " " + (int) player.getY() + " " + (int) player.getZ() + "§r";
-                signedByText = Text.literal(coordinates);
-                signing = true;
-                updateButtons();
-            }).dimensions(width / 2 - 100, signButton.getY(), 98, 20).build());
-            newEntryDoneButton = addDrawableChild(ButtonWidget.builder(ScreenTexts.DONE, button -> {
-                if (signing) {
-                    signing = false;
+            newEntryButton = addDrawableChild(new ButtonWidget(
+                width / 2 - 100,
+                signButton.y,
+                98,
+                20,
+                Text.translatable("xyzbook.new_entry"),
+                button -> {
+                    RegistryKey<World> dimension = player.getWorld().getRegistryKey();
+                    String dimensionColor;
+                    if (dimension == World.OVERWORLD) {
+                        dimensionColor = "§2";
+                    } else if (dimension == World.NETHER) {
+                        dimensionColor = "§4";
+                    } else {
+                        dimensionColor = "§5";
+                    }
+                    coordinates = dimensionColor +
+                        (int) player.getX() + " " +
+                        (int) player.getY() + " " +
+                        (int) player.getZ() + "§r";
+                    signedByText = Text.literal(coordinates);
+                    signing = true;
                     updateButtons();
-                    insertEntry(title.trim());
-                    title = "";
                 }
-            }).dimensions(width / 2 - 100, finalizeButton.getY(), 98, 20).build());
+            ));
+            newEntryDoneButton = addDrawableChild(new ButtonWidget(
+                width / 2 - 100,
+                finalizeButton.y,
+                98,
+                20,
+                ScreenTexts.DONE,
+                button -> {
+                    if (signing) {
+                        signing = false;
+                        updateButtons();
+                        insertEntry(title.trim());
+                        title = "";
+                    }
+                }
+            ));
         }
     }
 
