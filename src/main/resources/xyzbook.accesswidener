@@ -6,3 +6,5 @@ accessible field net/minecraft/client/util/SelectionManager stringGetter Ljava/u
 accessible field net/minecraft/client/util/SelectionManager stringSetter Ljava/util/function/Consumer;
 accessible field net/minecraft/client/util/SelectionManager clipboardGetter Ljava/util/function/Supplier;
 accessible field net/minecraft/client/util/SelectionManager clipboardSetter Ljava/util/function/Consumer;
+
+accessible method net/minecraft/client/item/ModelPredicateProviderRegistry register (Lnet/minecraft/item/Item;Lnet/minecraft/util/Identifier;Lnet/minecraft/client/item/UnclampedModelPredicateProvider;)V
