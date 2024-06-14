@@ -57,7 +57,7 @@ public abstract class BookEditScreenMixin extends Screen {
         if (currentPage != lastNotEmptyPage) {
             currentPage = lastNotEmptyPage;
             updateButtons();
-            changePage();
+            method_27872();
         }
         String newLine = "\n";
         String currentPageContent = getCurrentPageContent();
@@ -65,11 +65,11 @@ public abstract class BookEditScreenMixin extends Screen {
             currentPageContent.lastIndexOf(newLine) != currentPageContent.length() - 1;
         String topSeparator = isNeedTopSeparator ? newLine : "";
         String textToAppend = entryName + newLine + coordinates;
-        if (textRenderer.getWrappedLinesHeight(
+        if (textRenderer.getStringBoundedHeight(
             currentPageContent + topSeparator + textToAppend + newLine + SEPARATOR, getMaxTextWidth()
         ) <= getMaxTextHeight()) {
             textToAppend += newLine + SEPARATOR;
-        } else if (textRenderer.getWrappedLinesHeight(
+        } else if (textRenderer.getStringBoundedHeight(
             currentPageContent + topSeparator + textToAppend, getMaxTextWidth()
         ) > getMaxTextHeight()) {
             textToAppend += newLine + SEPARATOR;
@@ -86,8 +86,8 @@ public abstract class BookEditScreenMixin extends Screen {
         if (isNeedTopSeparator) {
             textToAppend = newLine + textToAppend;
         }
-        currentPageSelectionManager.putCursorAtEnd();
-        currentPageSelectionManager.insert(textToAppend);
+        field_24269.moveCaretToEnd();
+        field_24269.insert(textToAppend);
         invalidatePageContent();
         finalizeBook(false);
     }
@@ -128,7 +128,7 @@ public abstract class BookEditScreenMixin extends Screen {
     @Mutable
     @Shadow
     @Final
-    private Text signedByText;
+    private Text field_25892;
 
     @Shadow
     @Final
@@ -136,7 +136,7 @@ public abstract class BookEditScreenMixin extends Screen {
 
     @Shadow
     @Final
-    private SelectionManager currentPageSelectionManager;
+    private SelectionManager field_24269;
 
     @Shadow
     protected abstract void finalizeBook(boolean signBook);
@@ -154,15 +154,13 @@ public abstract class BookEditScreenMixin extends Screen {
     protected abstract int countPages();
 
     @Shadow
-    protected abstract void changePage();
+    protected abstract void method_27872();
 
     @Shadow
     protected abstract void openNextPage();
 
     @Mutable
-    @Shadow
-    @Final
-    private SelectionManager bookTitleSelectionManager;
+    @Shadow @Final private SelectionManager field_24270;
 
     @Inject(
         method = "<init>",
@@ -174,11 +172,11 @@ public abstract class BookEditScreenMixin extends Screen {
             isXYZBook = name != null && name.toLowerCase().contains("xyz");
         }
         if (isXYZBook) {
-            bookTitleSelectionManager = new SelectionManager(
-                bookTitleSelectionManager.stringGetter,
-                bookTitleSelectionManager.stringSetter,
-                bookTitleSelectionManager.clipboardGetter,
-                bookTitleSelectionManager.clipboardSetter,
+            field_24270 = new SelectionManager(
+                field_24270.stringGetter,
+                field_24270.stringSetter,
+                field_24270.clipboardGetter,
+                field_24270.clipboardSetter,
                 (string) -> string.length() < MAX_ENTRY_NAME_LENGTH
             );
         }
@@ -214,7 +212,7 @@ public abstract class BookEditScreenMixin extends Screen {
                         (int) player.getX() + " " +
                         (int) player.getY() + " " +
                         (int) player.getZ() + "§r";
-                    signedByText = new LiteralText(coordinates);
+                    field_25892 = new LiteralText(coordinates);
                     signing = true;
                     updateButtons();
                 }
@@ -324,7 +322,7 @@ public abstract class BookEditScreenMixin extends Screen {
         method = "render",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/text/OrderedText;styledForwardsVisitedString(Ljava/lang/String;Lnet/minecraft/text/Style;)Lnet/minecraft/text/OrderedText;",
+            target = "Lnet/minecraft/text/OrderedText;styledString(Ljava/lang/String;Lnet/minecraft/text/Style;)Lnet/minecraft/text/OrderedText;",
             ordinal = 0
         ),
         index = 0
