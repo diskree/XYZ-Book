@@ -1,0 +1,14 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "minecraft:item/writable_book"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "xyzbook:xyzbook": 1
+      },
+      "model": "xyzbook:item/xyz_book"
+    }
+  ]
+}
