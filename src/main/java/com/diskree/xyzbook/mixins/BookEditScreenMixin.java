@@ -36,7 +36,7 @@ public abstract class BookEditScreenMixin extends Screen {
     private static final String SEPARATOR = "-------------------";
 
     @Unique
-    private static final Identifier XYZ_BOOK_TEXTURE = new Identifier(BuildConfig.MOD_ID, "textures/gui/xyz_book.png");
+    private static final Identifier XYZ_BOOK_TEXTURE = Identifier.of(BuildConfig.MOD_ID, "textures/gui/xyz_book.png");
 
     @Unique
     private ButtonWidget newEntryButton;
