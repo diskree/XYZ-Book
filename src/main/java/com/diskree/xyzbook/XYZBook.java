@@ -2,7 +2,6 @@ package com.diskree.xyzbook;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.minecraft.client.item.ModelPredicateProviderRegistry;
-import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.Items;
 import net.minecraft.util.Identifier;
 
@@ -16,9 +15,7 @@ public class XYZBook implements ClientModInitializer {
             Items.WRITABLE_BOOK,
             Identifier.of(BuildConfig.MOD_ID, BuildConfig.MOD_ID),
             (itemStack, clientWorld, livingEntity, seed) -> {
-                if (itemStack.contains(DataComponentTypes.CUSTOM_NAME) &&
-                    itemStack.getName().getString().toLowerCase(Locale.ROOT).contains("xyz")
-                ) {
+                if (itemStack.getName().getString().toLowerCase(Locale.ROOT).contains("xyz")) {
                     return 1.0f;
                 }
                 return 0.0f;
