@@ -4,11 +4,11 @@ import com.diskree.xyzbook.BuildConfig;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.BookEditScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.util.SelectionManager;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.RegistryKey;
@@ -17,7 +17,6 @@ import net.minecraft.text.StringVisitable;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.Util;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
@@ -61,15 +60,15 @@ public abstract class BookEditScreenMixin extends Screen {
         String newLine = ScreenTexts.LINE_BREAK.getString();
         String currentPageContent = getCurrentPageContent();
         boolean isNeedTopSeparator = !currentPageContent.isEmpty() &&
-                currentPageContent.lastIndexOf(newLine) != currentPageContent.length() - 1;
+            currentPageContent.lastIndexOf(newLine) != currentPageContent.length() - 1;
         String topSeparator = isNeedTopSeparator ? newLine : "";
         String textToAppend = entryName + newLine + coordinates;
         if (textRenderer.getWrappedLinesHeight(
-                currentPageContent + topSeparator + textToAppend + newLine + SEPARATOR, MAX_TEXT_WIDTH
+            currentPageContent + topSeparator + textToAppend + newLine + SEPARATOR, MAX_TEXT_WIDTH
         ) <= MAX_TEXT_HEIGHT) {
             textToAppend += newLine + SEPARATOR;
         } else if (textRenderer.getWrappedLinesHeight(
-                currentPageContent + topSeparator + textToAppend, MAX_TEXT_WIDTH
+            currentPageContent + topSeparator + textToAppend, MAX_TEXT_WIDTH
         ) > MAX_TEXT_HEIGHT) {
             textToAppend += newLine + SEPARATOR;
             isNeedTopSeparator = false;
@@ -162,8 +161,8 @@ public abstract class BookEditScreenMixin extends Screen {
     private SelectionManager bookTitleSelectionManager;
 
     @Inject(
-            method = "<init>",
-            at = @At(value = "RETURN")
+        method = "<init>",
+        at = @At(value = "RETURN")
     )
     public void identifyXYZBook(CallbackInfo ci) {
         if (itemStack != null) {
@@ -172,21 +171,22 @@ public abstract class BookEditScreenMixin extends Screen {
         }
         if (isXYZBook) {
             bookTitleSelectionManager = new SelectionManager(
-                    bookTitleSelectionManager.stringGetter,
-                    bookTitleSelectionManager.stringSetter,
-                    bookTitleSelectionManager.clipboardGetter,
-                    bookTitleSelectionManager.clipboardSetter,
-                    (string) -> string.length() < MAX_ENTRY_NAME_LENGTH
+                bookTitleSelectionManager.stringGetter,
+                bookTitleSelectionManager.stringSetter,
+                bookTitleSelectionManager.clipboardGetter,
+                bookTitleSelectionManager.clipboardSetter,
+                (string) -> string.length() < MAX_ENTRY_NAME_LENGTH
             );
         }
     }
 
     @Inject(
-            method = "init",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/gui/screen/ingame/BookEditScreen;updateButtons()V"
-            )
+        method = "init",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/client/gui/screen/ingame/BookEditScreen;updateButtons()V",
+            ordinal = 0
+        )
     )
     public void initXYZButtons(CallbackInfo ci) {
         if (isXYZBook) {
@@ -217,8 +217,8 @@ public abstract class BookEditScreenMixin extends Screen {
     }
 
     @Inject(
-            method = "updateButtons",
-            at = @At(value = "RETURN")
+        method = "updateButtons",
+        at = @At(value = "RETURN")
     )
     public void updateXYZButtons(CallbackInfo ci) {
         if (isXYZBook) {
@@ -226,85 +226,88 @@ public abstract class BookEditScreenMixin extends Screen {
             finalizeButton.visible = false;
             newEntryButton.visible = !signing;
             newEntryDoneButton.visible = signing;
-            newEntryDoneButton.active = !Util.isBlank(title);
+            newEntryDoneButton.active = !title.trim().isBlank();
         }
     }
 
     @ModifyArg(
-            method = "render",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/gui/DrawContext;drawTexture(Lnet/minecraft/util/Identifier;IIIIII)V",
-                    ordinal = 0
-            ),
-            index = 0
+        method = "render",
+        at = @At(
+            value = "INVOKE",
+            target = "Lcom/mojang/blaze3d/systems/RenderSystem;setShaderTexture(ILnet/minecraft/util/Identifier;)V",
+            ordinal = 0
+        ),
+        index = 1
     )
     public Identifier setCustomBackground(Identifier originalValue) {
         return isXYZBook ? XYZ_BOOK_TEXTURE : originalValue;
     }
 
     @WrapOperation(
-            method = "render",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/gui/DrawContext;drawText(Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/text/Text;IIIZ)I",
-                    ordinal = 0
-            )
+        method = "render",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/client/font/TextRenderer;draw(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/text/Text;FFI)I",
+            ordinal = 0
+        )
     )
     public int hideEditTitle(
-            DrawContext context,
-            TextRenderer textRenderer,
-            Text text,
-            int x,
-            int y,
-            int color,
-            boolean shadow,
-            Operation<Integer> original
+        TextRenderer textRenderer,
+        MatrixStack matrices,
+        Text text,
+        float x,
+        float y,
+        int color,
+        Operation<Integer> original
     ) {
-        return isXYZBook ? 0 : original.call(context, textRenderer, text, x, y, color, shadow);
+        return isXYZBook ? 0 : original.call(textRenderer, matrices, text, x, y, color);
     }
 
     @WrapOperation(
-            method = "render",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/gui/DrawContext;drawTextWrapped(Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/text/StringVisitable;IIII)V"
-            )
+        method = "render",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/client/font/TextRenderer;drawTrimmed(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/text/StringVisitable;IIII)V",
+            ordinal = 0
+        )
     )
     public void hideFinalizeText(
-            DrawContext context,
-            TextRenderer textRenderer,
-            StringVisitable text,
-            int x,
-            int y,
-            int width,
-            int color,
-            Operation<Void> original
+        TextRenderer textRenderer,
+        MatrixStack matrices,
+        StringVisitable text,
+        int x,
+        int y,
+        int maxWidth,
+        int color,
+        Operation<Void> original
     ) {
         if (isXYZBook) {
             return;
         }
-        original.call(context, textRenderer, text, x, y, width, color);
+        original.call(textRenderer, matrices, text, x, y, maxWidth, color);
     }
 
     @ModifyArg(
-            method = "render",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/gui/DrawContext;drawText(Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/text/OrderedText;IIIZ)I"
-            ),
-            index = 3
+        method = "render",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/client/font/TextRenderer;draw(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/text/OrderedText;FFI)I",
+            ordinal = 0
+        ),
+        index = 3
     )
-    public int moveTitle(int originalValue) {
+    public float moveTitle(float originalValue) {
         return isXYZBook ? originalValue - 16 : originalValue;
     }
 
     @ModifyArg(
-            method = "render",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/text/OrderedText;styledForwardsVisitedString(Ljava/lang/String;Lnet/minecraft/text/Style;)Lnet/minecraft/text/OrderedText;"
-            ), index = 0
+        method = "render",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/text/OrderedText;styledForwardsVisitedString(Ljava/lang/String;Lnet/minecraft/text/Style;)Lnet/minecraft/text/OrderedText;",
+            ordinal = 0
+        ),
+        index = 0
     )
     public String ellipsisTitle(String title) {
         if (isXYZBook) {
@@ -317,11 +320,12 @@ public abstract class BookEditScreenMixin extends Screen {
     }
 
     @Redirect(
-            method = "keyPressedSignMode",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/gui/screen/ingame/BookEditScreen;finalizeBook(Z)V"
-            )
+        method = "keyPressedSignMode",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/client/gui/screen/ingame/BookEditScreen;finalizeBook(Z)V",
+            ordinal = 0
+        )
     )
     public void disallowKeyInput(BookEditScreen screen, boolean signBook) {
         if (isXYZBook) {
