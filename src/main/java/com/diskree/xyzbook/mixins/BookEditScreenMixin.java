@@ -267,13 +267,12 @@ public abstract class BookEditScreenMixin extends Screen {
         method = "render",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/font/TextRenderer;drawTrimmed(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/text/StringVisitable;IIII)V",
+            target = "Lnet/minecraft/client/font/TextRenderer;drawTrimmed(Lnet/minecraft/text/StringVisitable;IIII)V",
             ordinal = 0
         )
     )
     public void hideFinalizeText(
         TextRenderer textRenderer,
-        MatrixStack matrices,
         StringVisitable text,
         int x,
         int y,
@@ -284,7 +283,7 @@ public abstract class BookEditScreenMixin extends Screen {
         if (isXYZBook) {
             return;
         }
-        original.call(textRenderer, matrices, text, x, y, maxWidth, color);
+        original.call(textRenderer, text, x, y, maxWidth, color);
     }
 
     @ModifyArg(
