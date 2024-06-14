@@ -14,7 +14,7 @@ public class XYZBook implements ClientModInitializer {
         ModelPredicateProviderRegistry.register(
             Items.WRITABLE_BOOK,
             new Identifier(BuildConfig.MOD_ID, BuildConfig.MOD_ID),
-            (itemStack, clientWorld, livingEntity, seed) -> {
+            (itemStack, clientWorld, livingEntity) -> {
                 if (itemStack.getName().getString().toLowerCase(Locale.ROOT).contains("xyz")) {
                     return 1.0f;
                 }

@@ -59,7 +59,7 @@ public abstract class BookEditScreenMixin extends Screen {
             updateButtons();
             changePage();
         }
-        String newLine = ScreenTexts.LINE_BREAK.getString();
+        String newLine = "\n";
         String currentPageContent = getCurrentPageContent();
         boolean isNeedTopSeparator = !currentPageContent.isEmpty() &&
             currentPageContent.lastIndexOf(newLine) != currentPageContent.length() - 1;
@@ -94,12 +94,12 @@ public abstract class BookEditScreenMixin extends Screen {
 
     @Unique
     private int getMaxTextWidth() {
-        return field_32323;
+        return 114;
     }
 
     @Unique
     private int getMaxTextHeight() {
-        return field_32324;
+        return 128;
     }
 
     protected BookEditScreenMixin() {
@@ -157,14 +157,6 @@ public abstract class BookEditScreenMixin extends Screen {
     protected abstract void changePage();
 
     @Shadow
-    @Final
-    private static int field_32323;
-
-    @Shadow
-    @Final
-    private static int field_32324;
-
-    @Shadow
     protected abstract void openNextPage();
 
     @Mutable
@@ -202,7 +194,7 @@ public abstract class BookEditScreenMixin extends Screen {
     )
     public void initXYZButtons(CallbackInfo ci) {
         if (isXYZBook) {
-            newEntryButton = addDrawableChild(new ButtonWidget(
+            newEntryButton = addButton(new ButtonWidget(
                 width / 2 - 100,
                 signButton.y,
                 98,
@@ -227,7 +219,7 @@ public abstract class BookEditScreenMixin extends Screen {
                     updateButtons();
                 }
             ));
-            newEntryDoneButton = addDrawableChild(new ButtonWidget(
+            newEntryDoneButton = addButton(new ButtonWidget(
                 width / 2 - 100,
                 finalizeButton.y,
                 98,
@@ -255,7 +247,7 @@ public abstract class BookEditScreenMixin extends Screen {
             finalizeButton.visible = false;
             newEntryButton.visible = !signing;
             newEntryDoneButton.visible = signing;
-            newEntryDoneButton.active = !title.trim().isBlank();
+            newEntryDoneButton.active = !title.trim().isEmpty();
         }
     }
 
@@ -263,10 +255,10 @@ public abstract class BookEditScreenMixin extends Screen {
         method = "render",
         at = @At(
             value = "INVOKE",
-            target = "Lcom/mojang/blaze3d/systems/RenderSystem;setShaderTexture(ILnet/minecraft/util/Identifier;)V",
+            target = "Lnet/minecraft/client/texture/TextureManager;bindTexture(Lnet/minecraft/util/Identifier;)V",
             ordinal = 0
         ),
-        index = 1
+        index = 0
     )
     public Identifier setCustomBackground(Identifier originalValue) {
         return isXYZBook ? XYZ_BOOK_TEXTURE : originalValue;
