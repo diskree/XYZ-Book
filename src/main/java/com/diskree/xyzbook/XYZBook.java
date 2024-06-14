@@ -13,12 +13,13 @@ public class XYZBook implements ClientModInitializer {
     public void onInitializeClient() {
         ModelPredicateProviderRegistry.register(
             Items.WRITABLE_BOOK,
-            Identifier.of(BuildConfig.MOD_ID, BuildConfig.MOD_ID),
+            new Identifier(BuildConfig.MOD_ID, BuildConfig.MOD_ID),
             (itemStack, clientWorld, livingEntity, seed) -> {
                 if (itemStack.getName().getString().toLowerCase(Locale.ROOT).contains("xyz")) {
                     return 1.0f;
                 }
                 return 0.0f;
-            });
+            }
+        );
     }
 }

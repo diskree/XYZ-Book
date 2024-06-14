@@ -5,15 +5,17 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.ScreenTexts;
 import net.minecraft.client.gui.screen.ingame.BookEditScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.util.SelectionManager;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.screen.ScreenTexts;
+import net.minecraft.text.LiteralText;
 import net.minecraft.text.StringVisitable;
 import net.minecraft.text.Text;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.RegistryKey;
@@ -77,7 +79,7 @@ public abstract class BookEditScreenMixin extends Screen {
                 if (client != null) {
                     client.setScreen(null);
                 }
-                player.sendMessage(Text.translatable("xyzbook.no_more_space").formatted(Formatting.RED), true);
+                player.sendMessage(new TranslatableText("xyzbook.no_more_space").formatted(Formatting.RED), true);
                 return;
             }
         }
@@ -195,7 +197,7 @@ public abstract class BookEditScreenMixin extends Screen {
                 signButton.y,
                 98,
                 20,
-                Text.translatable("xyzbook.new_entry"),
+                new TranslatableText("xyzbook.new_entry"),
                 button -> {
                     RegistryKey<World> dimension = player.getWorld().getRegistryKey();
                     String dimensionColor;
@@ -210,7 +212,7 @@ public abstract class BookEditScreenMixin extends Screen {
                         (int) player.getX() + " " +
                         (int) player.getY() + " " +
                         (int) player.getZ() + "§r";
-                    signedByText = Text.literal(coordinates);
+                    signedByText = new LiteralText(coordinates);
                     signing = true;
                     updateButtons();
                 }
