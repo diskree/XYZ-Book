@@ -12,9 +12,7 @@ import net.minecraft.client.util.SelectionManager;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.text.LiteralText;
-import net.minecraft.text.StringVisitable;
-import net.minecraft.text.Text;
+import net.minecraft.text.StringRenderable;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
@@ -125,11 +123,6 @@ public abstract class BookEditScreenMixin extends Screen {
     @Shadow
     private ButtonWidget finalizeButton;
 
-    @Mutable
-    @Shadow
-    @Final
-    private Text field_25892;
-
     @Shadow
     @Final
     private PlayerEntity player;
@@ -160,7 +153,9 @@ public abstract class BookEditScreenMixin extends Screen {
     protected abstract void openNextPage();
 
     @Mutable
-    @Shadow @Final private SelectionManager field_24270;
+    @Shadow
+    @Final
+    private SelectionManager field_24270;
 
     @Inject(
         method = "<init>",
@@ -212,7 +207,6 @@ public abstract class BookEditScreenMixin extends Screen {
                         (int) player.getX() + " " +
                         (int) player.getY() + " " +
                         (int) player.getZ() + "§r";
-                    field_25892 = new LiteralText(coordinates);
                     signing = true;
                     updateButtons();
                 }
@@ -266,14 +260,39 @@ public abstract class BookEditScreenMixin extends Screen {
         method = "render",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/font/TextRenderer;draw(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/text/Text;FFI)I",
+            target = "Lnet/minecraft/client/resource/language/I18n;translate(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;",
+            ordinal = 1
+        )
+    )
+    public String renderCoordinates(String key, Object[] args, Operation<String> original) {
+        return isXYZBook ? coordinates : original.call(key, args);
+    }
+
+    @ModifyArg(
+        method = "render",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/client/font/TextRenderer;draw(Lnet/minecraft/client/util/math/MatrixStack;Ljava/lang/String;FFI)I",
+            ordinal = 2
+        ),
+        index = 1
+    )
+    public String disableGrayCoordinates(String text) {
+        return isXYZBook ? coordinates : text;
+    }
+
+    @WrapOperation(
+        method = "render",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/client/font/TextRenderer;draw(Lnet/minecraft/client/util/math/MatrixStack;Ljava/lang/String;FFI)I",
             ordinal = 0
         )
     )
     public int hideEditTitle(
         TextRenderer textRenderer,
         MatrixStack matrices,
-        Text text,
+        String text,
         float x,
         float y,
         int color,
@@ -286,13 +305,13 @@ public abstract class BookEditScreenMixin extends Screen {
         method = "render",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/font/TextRenderer;drawTrimmed(Lnet/minecraft/text/StringVisitable;IIII)V",
+            target = "Lnet/minecraft/client/font/TextRenderer;drawTrimmed(Lnet/minecraft/text/StringRenderable;IIII)V",
             ordinal = 0
         )
     )
     public void hideFinalizeText(
         TextRenderer textRenderer,
-        StringVisitable text,
+        StringRenderable text,
         int x,
         int y,
         int maxWidth,
@@ -309,8 +328,8 @@ public abstract class BookEditScreenMixin extends Screen {
         method = "render",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/font/TextRenderer;draw(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/text/OrderedText;FFI)I",
-            ordinal = 0
+            target = "Lnet/minecraft/client/font/TextRenderer;draw(Lnet/minecraft/client/util/math/MatrixStack;Ljava/lang/String;FFI)I",
+            ordinal = 1
         ),
         index = 3
     )
@@ -318,16 +337,14 @@ public abstract class BookEditScreenMixin extends Screen {
         return isXYZBook ? originalValue - 16 : originalValue;
     }
 
-    @ModifyArg(
+    @Redirect(
         method = "render",
         at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/text/OrderedText;styledString(Ljava/lang/String;Lnet/minecraft/text/Style;)Lnet/minecraft/text/OrderedText;",
+            value = "FIELD",
+            target = "Lnet/minecraft/client/gui/screen/ingame/BookEditScreen;title:Ljava/lang/String;",
             ordinal = 0
-        ),
-        index = 0
-    )
-    public String ellipsisTitle(String title) {
+        )
+    ) public String ellipsisTitle(BookEditScreen screen) {
         if (isXYZBook) {
             int maxWidth = getMaxTextWidth() - 10;
             if (textRenderer.getWidth(title) >= maxWidth) {
