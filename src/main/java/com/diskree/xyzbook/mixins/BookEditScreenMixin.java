@@ -5,24 +5,22 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.ScreenTexts;
 import net.minecraft.client.gui.screen.ingame.BookEditScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.util.SelectionManager;
-import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.resource.language.I18n;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.text.StringRenderable;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.RegistryKey;
-import net.minecraft.world.World;
-import org.spongepowered.asm.mixin.*;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyArg;
-import org.spongepowered.asm.mixin.injection.Redirect;
+import net.minecraft.world.dimension.Dimension;
+import net.minecraft.world.dimension.OverworldDimension;
+import net.minecraft.world.dimension.TheNetherDimension;
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(BookEditScreen.class)
@@ -55,7 +53,6 @@ public abstract class BookEditScreenMixin extends Screen {
         if (currentPage != lastNotEmptyPage) {
             currentPage = lastNotEmptyPage;
             updateButtons();
-            method_27872();
         }
         String newLine = "\n";
         String currentPageContent = getCurrentPageContent();
@@ -63,30 +60,29 @@ public abstract class BookEditScreenMixin extends Screen {
             currentPageContent.lastIndexOf(newLine) != currentPageContent.length() - 1;
         String topSeparator = isNeedTopSeparator ? newLine : "";
         String textToAppend = entryName + newLine + coordinates;
-        if (textRenderer.getStringBoundedHeight(
+        if (font.getStringBoundedHeight(
             currentPageContent + topSeparator + textToAppend + newLine + SEPARATOR, getMaxTextWidth()
         ) <= getMaxTextHeight()) {
             textToAppend += newLine + SEPARATOR;
-        } else if (textRenderer.getStringBoundedHeight(
+        } else if (font.getStringBoundedHeight(
             currentPageContent + topSeparator + textToAppend, getMaxTextWidth()
         ) > getMaxTextHeight()) {
             textToAppend += newLine + SEPARATOR;
             isNeedTopSeparator = false;
             openNextPage();
             if (currentPage == lastNotEmptyPage) {
-                if (client != null) {
-                    client.openScreen(null);
+                if (minecraft != null) {
+                    minecraft.openScreen(null);
                 }
-                player.sendMessage(new TranslatableText("xyzbook.no_more_space").formatted(Formatting.RED), true);
+                player.sendMessage(new TranslatableText("xyzbook.no_more_space").formatted(Formatting.RED));
                 return;
             }
         }
         if (isNeedTopSeparator) {
             textToAppend = newLine + textToAppend;
         }
-        field_24269.moveCaretToEnd();
-        field_24269.insert(textToAppend);
-        invalidatePageContent();
+        setPageContent(getCurrentPageContent() + textToAppend);
+        cursorIndex = highlightTo = getCurrentPageContent().length();
         finalizeBook(false);
     }
 
@@ -112,9 +108,6 @@ public abstract class BookEditScreenMixin extends Screen {
     private boolean signing;
 
     @Shadow
-    protected abstract void updateButtons();
-
-    @Shadow
     private String title;
 
     @Shadow
@@ -128,34 +121,31 @@ public abstract class BookEditScreenMixin extends Screen {
     private PlayerEntity player;
 
     @Shadow
-    @Final
-    private SelectionManager field_24269;
-
-    @Shadow
-    protected abstract void finalizeBook(boolean signBook);
-
-    @Shadow
-    protected abstract void invalidatePageContent();
-
-    @Shadow
-    protected abstract String getCurrentPageContent();
+    private int cursorIndex;
 
     @Shadow
     private int currentPage;
 
     @Shadow
-    protected abstract int countPages();
+    private int highlightTo;
 
     @Shadow
-    protected abstract void method_27872();
+    protected abstract void updateButtons();
+
+    @Shadow
+    protected abstract void finalizeBook(boolean signBook);
+
+    @Shadow
+    protected abstract String getCurrentPageContent();
+
+    @Shadow
+    protected abstract int countPages();
 
     @Shadow
     protected abstract void openNextPage();
 
-    @Mutable
     @Shadow
-    @Final
-    private SelectionManager field_24270;
+    protected abstract void setPageContent(String newContent);
 
     @Inject(
         method = "<init>",
@@ -165,15 +155,6 @@ public abstract class BookEditScreenMixin extends Screen {
         if (itemStack != null) {
             String name = itemStack.getName().getString();
             isXYZBook = name != null && name.toLowerCase().contains("xyz");
-        }
-        if (isXYZBook) {
-            field_24270 = new SelectionManager(
-                field_24270.stringGetter,
-                field_24270.stringSetter,
-                field_24270.clipboardGetter,
-                field_24270.clipboardSetter,
-                (string) -> string.length() < MAX_ENTRY_NAME_LENGTH
-            );
         }
     }
 
@@ -192,13 +173,13 @@ public abstract class BookEditScreenMixin extends Screen {
                 signButton.y,
                 98,
                 20,
-                new TranslatableText("xyzbook.new_entry"),
+                new TranslatableText("xyzbook.new_entry").getString(),
                 button -> {
-                    RegistryKey<World> dimension = player.world.getRegistryKey();
+                    Dimension dimension = player.world.getDimension();
                     String dimensionColor;
-                    if (dimension == World.OVERWORLD) {
+                    if (dimension instanceof OverworldDimension) {
                         dimensionColor = "§2";
-                    } else if (dimension == World.NETHER) {
+                    } else if (dimension instanceof TheNetherDimension) {
                         dimensionColor = "§4";
                     } else {
                         dimensionColor = "§5";
@@ -216,7 +197,7 @@ public abstract class BookEditScreenMixin extends Screen {
                 finalizeButton.y,
                 98,
                 20,
-                ScreenTexts.DONE,
+                I18n.translate("gui.done"),
                 button -> {
                     if (signing) {
                         signing = false;
@@ -241,6 +222,14 @@ public abstract class BookEditScreenMixin extends Screen {
             newEntryDoneButton.visible = signing;
             newEntryDoneButton.active = !title.trim().isEmpty();
         }
+    }
+
+    @ModifyConstant(
+        method = "charTyped",
+        constant = @Constant(intValue = 16)
+    )
+    public int setMaxEntryNameLength(int originalValue) {
+        return isXYZBook ? MAX_ENTRY_NAME_LENGTH : originalValue;
     }
 
     @ModifyArg(
@@ -272,10 +261,10 @@ public abstract class BookEditScreenMixin extends Screen {
         method = "render",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/font/TextRenderer;draw(Lnet/minecraft/client/util/math/MatrixStack;Ljava/lang/String;FFI)I",
+            target = "Lnet/minecraft/client/font/TextRenderer;draw(Ljava/lang/String;FFI)I",
             ordinal = 2
         ),
-        index = 1
+        index = 0
     )
     public String disableGrayCoordinates(String text) {
         return isXYZBook ? coordinates : text;
@@ -285,33 +274,32 @@ public abstract class BookEditScreenMixin extends Screen {
         method = "render",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/font/TextRenderer;draw(Lnet/minecraft/client/util/math/MatrixStack;Ljava/lang/String;FFI)I",
+            target = "Lnet/minecraft/client/font/TextRenderer;draw(Ljava/lang/String;FFI)I",
             ordinal = 0
         )
     )
     public int hideEditTitle(
         TextRenderer textRenderer,
-        MatrixStack matrices,
         String text,
         float x,
         float y,
         int color,
         Operation<Integer> original
     ) {
-        return isXYZBook ? 0 : original.call(textRenderer, matrices, text, x, y, color);
+        return isXYZBook ? 0 : original.call(textRenderer, text, x, y, color);
     }
 
     @WrapOperation(
         method = "render",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/font/TextRenderer;drawTrimmed(Lnet/minecraft/text/StringRenderable;IIII)V",
+            target = "Lnet/minecraft/client/font/TextRenderer;drawTrimmed(Ljava/lang/String;IIII)V",
             ordinal = 0
         )
     )
     public void hideFinalizeText(
         TextRenderer textRenderer,
-        StringRenderable text,
+        String text,
         int x,
         int y,
         int maxWidth,
@@ -328,10 +316,10 @@ public abstract class BookEditScreenMixin extends Screen {
         method = "render",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/font/TextRenderer;draw(Lnet/minecraft/client/util/math/MatrixStack;Ljava/lang/String;FFI)I",
+            target = "Lnet/minecraft/client/font/TextRenderer;draw(Ljava/lang/String;FFI)I",
             ordinal = 1
         ),
-        index = 3
+        index = 2
     )
     public float moveTitle(float originalValue) {
         return isXYZBook ? originalValue - 16 : originalValue;
@@ -344,11 +332,12 @@ public abstract class BookEditScreenMixin extends Screen {
             target = "Lnet/minecraft/client/gui/screen/ingame/BookEditScreen;title:Ljava/lang/String;",
             ordinal = 0
         )
-    ) public String ellipsisTitle(BookEditScreen screen) {
+    )
+    public String ellipsisTitle(BookEditScreen screen) {
         if (isXYZBook) {
             int maxWidth = getMaxTextWidth() - 10;
-            if (textRenderer.getWidth(title) >= maxWidth) {
-                return title.substring(title.length() - textRenderer.trimToWidth(title, maxWidth).length());
+            if (font.getStringWidth(title) >= maxWidth) {
+                return title.substring(title.length() - font.trimToWidth(title, maxWidth).length());
             }
         }
         return title;
