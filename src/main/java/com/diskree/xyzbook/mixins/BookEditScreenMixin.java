@@ -231,7 +231,7 @@ public abstract class BookEditScreenMixin extends Screen {
     }
 
     @ModifyArg(
-            method = "renderBackground",
+            method = "render",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/client/gui/DrawContext;drawTexture(Lnet/minecraft/util/Identifier;IIIIII)V",
