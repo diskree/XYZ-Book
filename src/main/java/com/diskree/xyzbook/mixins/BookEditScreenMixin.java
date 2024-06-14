@@ -66,18 +66,18 @@ public abstract class BookEditScreenMixin extends Screen {
         String topSeparator = isNeedTopSeparator ? newLine : "";
         String textToAppend = entryName + newLine + coordinates;
         if (textRenderer.getWrappedLinesHeight(
-            currentPageContent + topSeparator + textToAppend + newLine + SEPARATOR, MAX_TEXT_WIDTH
-        ) <= MAX_TEXT_HEIGHT) {
+            currentPageContent + topSeparator + textToAppend + newLine + SEPARATOR, getMaxTextWidth()
+        ) <= getMaxTextHeight()) {
             textToAppend += newLine + SEPARATOR;
         } else if (textRenderer.getWrappedLinesHeight(
-            currentPageContent + topSeparator + textToAppend, MAX_TEXT_WIDTH
-        ) > MAX_TEXT_HEIGHT) {
+            currentPageContent + topSeparator + textToAppend, getMaxTextWidth()
+        ) > getMaxTextHeight()) {
             textToAppend += newLine + SEPARATOR;
             isNeedTopSeparator = false;
             openNextPage();
             if (currentPage == lastNotEmptyPage) {
                 if (client != null) {
-                    client.setScreen(null);
+                    client.openScreen(null);
                 }
                 player.sendMessage(new TranslatableText("xyzbook.no_more_space").formatted(Formatting.RED), true);
                 return;
@@ -90,6 +90,16 @@ public abstract class BookEditScreenMixin extends Screen {
         currentPageSelectionManager.insert(textToAppend);
         invalidatePageContent();
         finalizeBook(false);
+    }
+
+    @Unique
+    private int getMaxTextWidth() {
+        return field_32323;
+    }
+
+    @Unique
+    private int getMaxTextHeight() {
+        return field_32324;
     }
 
     protected BookEditScreenMixin() {
@@ -148,11 +158,11 @@ public abstract class BookEditScreenMixin extends Screen {
 
     @Shadow
     @Final
-    private static int MAX_TEXT_WIDTH;
+    private static int field_32323;
 
     @Shadow
     @Final
-    private static int MAX_TEXT_HEIGHT;
+    private static int field_32324;
 
     @Shadow
     protected abstract void openNextPage();
@@ -329,7 +339,7 @@ public abstract class BookEditScreenMixin extends Screen {
     )
     public String ellipsisTitle(String title) {
         if (isXYZBook) {
-            int maxWidth = MAX_TEXT_WIDTH - 10;
+            int maxWidth = getMaxTextWidth() - 10;
             if (textRenderer.getWidth(title) >= maxWidth) {
                 return title.substring(title.length() - textRenderer.trimToWidth(title, maxWidth).length());
             }
