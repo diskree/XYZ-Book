@@ -97,7 +97,7 @@ public abstract class BookEditScreenMixin extends Screen {
 
     @Shadow
     @Final
-    private ItemStack itemStack;
+    private ItemStack stack;
 
     @Shadow
     private boolean signing;
@@ -166,8 +166,8 @@ public abstract class BookEditScreenMixin extends Screen {
         at = @At(value = "RETURN")
     )
     public void identifyXYZBook(CallbackInfo ci) {
-        if (itemStack != null) {
-            String name = itemStack.getName().getString();
+        if (stack != null) {
+            String name = stack.getName().getString();
             isXYZBook = name != null && name.toLowerCase().contains("xyz");
         }
         if (isXYZBook) {
@@ -234,10 +234,10 @@ public abstract class BookEditScreenMixin extends Screen {
         method = "renderBackground",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/DrawContext;drawTexture(Lnet/minecraft/util/Identifier;IIIIII)V",
+            target = "Lnet/minecraft/client/gui/DrawContext;drawTexture(Ljava/util/function/Function;Lnet/minecraft/util/Identifier;IIFFIIII)V",
             ordinal = 0
         ),
-        index = 0
+        index = 1
     )
     public Identifier setCustomBackground(Identifier originalValue) {
         return isXYZBook ? XYZ_BOOK_TEXTURE : originalValue;
