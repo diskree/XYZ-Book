@@ -7,7 +7,6 @@
   },
   "client": [
     "BookEditScreenMixin",
-    "BooleanPropertiesMixin",
-    "ItemModelGeneratorMixin"
+    "BooleanPropertiesMixin"
   ]
 }
