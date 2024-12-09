@@ -1,27 +1,39 @@
 package com.diskree.xyzbook;
 
+import com.mojang.serialization.MapCodec;
 import net.fabricmc.api.ClientModInitializer;
-import net.minecraft.client.item.ModelPredicateProviderRegistry;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.minecraft.client.render.item.property.bool.BooleanProperty;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.component.DataComponentTypes;
-import net.minecraft.item.Items;
-import net.minecraft.util.Identifier;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.ModelTransformationMode;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
 
 public class XYZBook implements ClientModInitializer {
 
+    @Environment(EnvType.CLIENT)
+    public record XYZBookProperty() implements BooleanProperty {
+        public static final MapCodec<XYZBookProperty> CODEC = MapCodec.unit(new XYZBookProperty());
+
+        @Override
+        public boolean getValue(@NotNull ItemStack stack, @Nullable ClientWorld world, @Nullable LivingEntity user, int seed, ModelTransformationMode modelTransformationMode) {
+            return stack.contains(DataComponentTypes.CUSTOM_NAME) &&
+                stack.getName().getString().toLowerCase(Locale.ROOT).contains("xyz");
+        }
+
+        @Override
+        public MapCodec<XYZBookProperty> getCodec() {
+            return CODEC;
+        }
+    }
+
     @Override
     public void onInitializeClient() {
-        ModelPredicateProviderRegistry.register(
-            Items.WRITABLE_BOOK,
-            Identifier.of(BuildConfig.MOD_ID, BuildConfig.MOD_ID),
-            (itemStack, clientWorld, livingEntity, seed) -> {
-                if (itemStack.contains(DataComponentTypes.CUSTOM_NAME) &&
-                    itemStack.getName().getString().toLowerCase(Locale.ROOT).contains("xyz")
-                ) {
-                    return 1.0f;
-                }
-                return 0.0f;
-            });
     }
 }

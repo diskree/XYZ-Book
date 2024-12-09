@@ -1,6 +1,6 @@
 {
     "parent": "item/writable_book",
     "textures": {
-        "layer0": "xyzbook:item/xyz_book"
+        "layer0": "xyzbook:item/xyzbook"
     }
 }

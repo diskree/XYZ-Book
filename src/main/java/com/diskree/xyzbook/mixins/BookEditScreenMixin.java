@@ -36,7 +36,7 @@ public abstract class BookEditScreenMixin extends Screen {
     private static final String SEPARATOR = "-------------------";
 
     @Unique
-    private static final Identifier XYZ_BOOK_TEXTURE = Identifier.of(BuildConfig.MOD_ID, "textures/gui/xyz_book.png");
+    private static final Identifier XYZ_BOOK_TEXTURE = Identifier.of(BuildConfig.MOD_ID, "textures/gui/xyzbook.png");
 
     @Unique
     private ButtonWidget newEntryButton;
@@ -268,23 +268,24 @@ public abstract class BookEditScreenMixin extends Screen {
         method = "render",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/DrawContext;drawTextWrapped(Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/text/StringVisitable;IIII)V"
+            target = "Lnet/minecraft/client/gui/DrawContext;drawWrappedText(Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/text/StringVisitable;IIIIZ)V"
         )
     )
     public void hideFinalizeText(
-        DrawContext context,
+        DrawContext instance,
         TextRenderer textRenderer,
         StringVisitable text,
         int x,
         int y,
         int width,
         int color,
+        boolean shadow,
         Operation<Void> original
     ) {
         if (isXYZBook) {
             return;
         }
-        original.call(context, textRenderer, text, x, y, width, color);
+        original.call(instance, textRenderer, text, x, y, width, color, shadow);
     }
 
     @ModifyArg(
